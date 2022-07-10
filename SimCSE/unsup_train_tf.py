@@ -69,7 +69,7 @@ for name, data in datasets.items():
 
 # 构造训练集
 np.random.shuffle(train_token_ids)
-train_token_ids = train_token_ids[:10000]
+train_token_ids = train_token_ids[:100]
 # 以train+valid+test全体为测试集，train+valid+test中随机挑1万条作为训练集。数据变多了loss会变得很小:
 # simcse的训练目标本身跟句子相似度任务没有直接联系，训练数据越多，只能让simcse本身的训练loss越小，不能保证句子相似度任务有提升。
 
@@ -117,45 +117,46 @@ print(" ************************* 训练 *******************************")
 encoder.summary()
 encoder.compile(loss=simcse_loss, optimizer=Adam(1e-5))
 
-train_generator = data_generator(train_token_ids, batch_size)  #
-print("train_generator:", len(train_generator)) # 11607 训练数据29万
-encoder.fit(train_generator.forfit(),
-    steps_per_epoch=len(train_generator),
-    epochs=epochs)
+#train_generator = data_generator(train_token_ids, batch_size)  #
+#print("train_generator:", len(train_generator)) # 11607 训练数据29万
+#encoder.fit(train_generator.forfit(),
+#    steps_per_epoch=len(train_generator),
+#    epochs=epochs)
 # 每一轮epoch需要执行多少steps，也就是多少steps，才能认为一轮epoch结束。
 # 那么衍生问题就是，一个step是怎么度量？其实就是规定每个step加载多少数据，也就是batch_size。
 # 他们的关系如下：steps_per_epoch=len(x_train)/batch_size
 # 一句话概括，就是对于整个训练数据集，generator要在多少步内完成一轮遍历（epoch），
 # 从而也就规定了每步要加载多少数据（batch_size）。
-encoder.save_weights(model_save_path)
+#encoder.save_weights(model_save_path)
 
 print(" ************************* 测试模型效果 *******************************")
 # 语料向量化
-all_vecs = []  # names=3*segment=2
-for a_token_ids, b_token_ids in all_token_ids:
-    a_vecs = encoder.predict([a_token_ids, np.zeros_like(a_token_ids)], verbose=True) # len(test) * 768
-    b_vecs = encoder.predict([b_token_ids, np.zeros_like(b_token_ids)], verbose=True)
-    all_vecs.append((a_vecs, b_vecs))
+#all_vecs = []  # names=3*segment=2
+#for a_token_ids, b_token_ids in all_token_ids:
+#    a_vecs = encoder.predict([a_token_ids, np.zeros_like(a_token_ids)], verbose=True) # len(test) * 768
+#    b_vecs = encoder.predict([b_token_ids, np.zeros_like(b_token_ids)], verbose=True)
+#    all_vecs.append((a_vecs, b_vecs))
 
-# 标准化，相似度，相关系数
-all_corrcoefs = []
-for (a_vecs, b_vecs), labels in zip(all_vecs, all_labels):
-    a_vecs = l2_normalize(a_vecs)
-    b_vecs = l2_normalize(b_vecs)
-    sims = (a_vecs * b_vecs).sum(axis=1)  # train: len(train) prob
-#     print("sims:", sims)
-    corrcoef = compute_corrcoef(labels, sims)
-    all_corrcoefs.append(corrcoef)
+## 标准化，相似度，相关系数
+#all_corrcoefs = []
+#for (a_vecs, b_vecs), labels in zip(all_vecs, all_labels):
+#    a_vecs = l2_normalize(a_vecs)
+#    b_vecs = l2_normalize(b_vecs)
+#    sims = (a_vecs * b_vecs).sum(axis=1)  # train: len(train) prob
+##     print("sims:", sims)
+#    corrcoef = compute_corrcoef(labels, sims)
+#    all_corrcoefs.append(corrcoef)
 
-all_corrcoefs.extend([
-    np.average(all_corrcoefs),
-    np.average(all_corrcoefs, weights=all_weights)  # all_weights 数据量
-])
+#all_corrcoefs.extend([
+#    np.average(all_corrcoefs),
+#    np.average(all_corrcoefs, weights=all_weights)  # all_weights 数据量
+#])
 
-for name, corrcoef in zip(all_names + ['avg', 'w-avg'], all_corrcoefs):
-    print('%s: %s' % (name, corrcoef))
+#for name, corrcoef in zip(all_names + ['avg', 'w-avg'], all_corrcoefs):
+#    print('%s: %s' % (name, corrcoef))
 
 # <------------------------ 预测结果输出 ----------------->
+encoder.load_weights(model_save_path)
 # 加载数据集
 print(" ************************* 预测 *******************************")
 pred_data = load_data(f"{data_path}/{task_name}/{task_name}.test.data")

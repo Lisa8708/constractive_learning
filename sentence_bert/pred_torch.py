@@ -17,10 +17,10 @@ evaluation_steps = 1000
 data_path = "../data"
 task_name = 'BQ'
 pred_file_path = f"{data_path}/{task_name}/{task_name}.test.data"
-pred_out_path = pred_file_path + '.pred.sbert.base'
+pred_out_path = f"{data_path}/{task_name}/pred/test.sbert.txt"
 
 # 加载训练好的模型
-#model_base_path = '../../pretrained_model/sentence-transformer-bert-base-nli-mean-tokens'
+# model_base_path = '../../pretrained_model/sentence-transformer-bert-base-nli-mean-tokens'
 model_base_path = f"{data_path}/{task_name}/model/sbert"
 
 model = SentenceTransformer(model_base_path, device='cuda')
